@@ -1,0 +1,15 @@
+# Local dependencies, build artifacts, environment files, and diagnostic output
+# are not deployment source.
+node_modules
+.next
+.next-*
+.env
+.env.*
+.vercel
+*.log
+*.tsbuildinfo
+live-contenders.html
+nomination-action-headers.txt
+nomination-action-response.txt
+Dockerfile.local
+netlify.toml
