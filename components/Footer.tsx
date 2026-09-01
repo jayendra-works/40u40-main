@@ -100,7 +100,7 @@ export function Footer({
               className="h-9 w-auto max-w-[min(200px,55vw)] object-contain object-center md:h-10 md:max-w-[220px] md:object-left"
             />
             <Image
-              src="/asia_inc_korean.png"
+              src="/asia_inc_korean.webp"
               alt="Asia Inc 500 — Korean"
               width={80}
               height={100}

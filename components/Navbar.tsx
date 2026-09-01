@@ -112,7 +112,7 @@ export function Navbar() {
         {/* Logo left */}
         <Link href="/" className="group justify-self-start overflow-visible" aria-label="40 Under 40 Home">
           <Image
-            src="/40u40_logo.png"
+            src="/40u40_logo.webp"
             alt="40 Under 40"
             width={300}
             height={300}

@@ -186,7 +186,7 @@ function PortraitField({ finalists, onOpen, reducedMotion }: { finalists: Finali
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   return <div className="final-forty-field relative min-h-[440px] self-stretch" aria-label="A spatial preview of the finalist collection">
     {field.map((finalist, index) => <div key={finalist.id} onMouseEnter={() => setActiveIndex(index)} onMouseLeave={() => setActiveIndex(null)} className={`final-forty-orbit final-forty-orbit-${index + 1} ${activeIndex === index ? "is-hovered" : ""} ${reducedMotion ? "motion-reduce" : ""}`}><button type="button" onFocus={() => setActiveIndex(index)} onBlur={() => setActiveIndex(null)} onClick={() => onOpen(finalist.slug)} className="final-forty-orbit-card" aria-label={`Open ${finalist.name}'s profile`}>
-      <Image unoptimized priority src={finalist.photo ?? EMPTY_IMAGE} alt="" fill sizes="(max-width: 1024px) 32vw, 18vw" className="object-cover" />
+      <Image priority={index < 3} src={finalist.photo ?? EMPTY_IMAGE} alt="" fill sizes="(max-width: 1024px) 32vw, 18vw" className="object-cover" />
       <span><b>{indexLabel(index)}</b>{finalist.name}<em>{finalist.category ?? "Finalist"}</em></span>
     </button></div>)}
     <div className="final-forty-field-number" aria-hidden>40</div>
@@ -197,7 +197,7 @@ function FinalistCard({ finalist, index, onOpen, onCursor, reducedMotion }: { fi
   return <motion.article initial={{ opacity: 0, y: reducedMotion ? 0 : 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: reducedMotion ? 0.1 : 0.45, ease: EASE }} className="final-forty-card group">
     <button type="button" onClick={() => onOpen(finalist.slug)} onMouseMove={(event) => onCursor({ x: event.clientX, y: event.clientY, active: true })} onMouseLeave={() => onCursor({ x: -80, y: -80, active: false })} className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c5b397] focus-visible:ring-offset-4 focus-visible:ring-offset-[#0a0908]" aria-label={`View profile: ${finalist.name}`}>
       <div className="relative aspect-[3/4] overflow-hidden bg-[#1b1916]">
-        <Image unoptimized src={finalist.photo ?? EMPTY_IMAGE} alt={`Portrait of ${finalist.name}`} fill priority={index < 2} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" className="object-cover grayscale-[0.35] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:grayscale-0" />
+        <Image src={finalist.photo ?? EMPTY_IMAGE} alt={`Portrait of ${finalist.name}`} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" className="object-cover grayscale-[0.35] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:grayscale-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-95" />
         <span className="absolute left-4 top-4 text-[10px] tracking-[0.2em] text-[#eae6e1]/75">{indexLabel(index)}</span>
         <span className="absolute bottom-4 left-4 translate-y-2 text-[9px] font-medium uppercase tracking-[0.3em] text-[#c5b397] opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100">View profile <ArrowUpRight className="ml-1 inline-block" size={12} /></span>
@@ -220,7 +220,7 @@ function ProfileExperience({ finalist, index, total, onClose, onStep, onShare, s
       </div>
       <div className="grid h-[calc(100%-3.7rem)] gap-7 lg:grid-cols-[minmax(320px,.82fr)_minmax(0,1fr)] lg:gap-14">
         <motion.div layoutId={`portrait-${finalist.id}`} initial={{ opacity: 0.4, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative hidden h-full overflow-hidden bg-[#171512] lg:block">
-          <Image unoptimized src={finalist.photo ?? EMPTY_IMAGE} alt={`Portrait of ${finalist.name}`} fill priority sizes="(max-width: 1024px) 100vw, 48vw" className="object-cover" />
+          <Image src={finalist.photo ?? EMPTY_IMAGE} alt={`Portrait of ${finalist.name}`} fill priority sizes="(max-width: 1024px) 100vw, 48vw" className="object-cover" />
         </motion.div>
         <article className="flex min-w-0 flex-col justify-between overflow-hidden py-1 lg:py-5">
           <div>
