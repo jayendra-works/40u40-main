@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerSession } from "next-auth";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -19,6 +19,7 @@ export async function upsertSiteSetting(key: string, value: string) {
     create: { key, value },
     update: { value },
   });
+  revalidateTag("site-settings");
   revalidatePath("/");
   revalidatePath("/program");
   revalidatePath("/summit");

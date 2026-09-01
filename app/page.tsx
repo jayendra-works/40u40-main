@@ -11,9 +11,8 @@ import { WhyRecognitionSection } from "@/components/sections/WhyRecognitionSecti
 import { NominationCTASection } from "@/components/sections/NominationCTASection";
 import { NoticeBoard } from "@/components/sections/NoticeBoard";
 
-/** Revalidate cached page every 60 seconds; admin actions revalidate on content change. */
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+/** Cached at the edge; admin mutations explicitly invalidate this route. */
+export const revalidate = 300;
 
 export default async function HomePage() {
   const [nominationCount, settings, speakers, notice] = await Promise.all([

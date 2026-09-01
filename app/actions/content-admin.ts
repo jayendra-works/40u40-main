@@ -116,6 +116,7 @@ export async function createSpeaker(data: {
   revalidatePath("/summit");
   revalidatePath("/contenders");
   revalidatePath("/finalists");
+  revalidatePath("/finalists/[slug]", "page");
   revalidatePath("/program/finalists");
 }
 
@@ -150,6 +151,7 @@ export async function updateSpeaker(
   revalidatePath("/summit");
   revalidatePath("/contenders");
   revalidatePath("/finalists");
+  revalidatePath("/finalists/[slug]", "page");
   revalidatePath("/program/finalists");
 }
 
@@ -161,5 +163,6 @@ export async function deleteSpeaker(id: string) {
   revalidatePath("/summit");
   revalidatePath("/contenders");
   revalidatePath("/finalists");
+  revalidatePath("/finalists/[slug]", "page");
   revalidatePath("/program/finalists");
 }

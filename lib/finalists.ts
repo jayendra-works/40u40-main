@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
 export type FinalistProfile = {
   id: string;
@@ -26,7 +27,7 @@ export function finalistSlug(name: string): string {
 }
 
 /** Database-backed finalist data; the visual experience stays unchanged when this moves to a CMS. */
-export async function getFinalists(): Promise<FinalistProfile[]> {
+export const getFinalists = cache(async (): Promise<FinalistProfile[]> => {
   const rows = await prisma.speaker.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: {
@@ -46,7 +47,7 @@ export async function getFinalists(): Promise<FinalistProfile[]> {
   });
 
   return rows.map((row) => ({ ...row, slug: finalistSlug(row.name) }));
-}
+});
 
 export async function getFinalistBySlug(slug: string) {
   const finalists = await getFinalists();

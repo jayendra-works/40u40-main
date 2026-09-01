@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getFinalistBySlug, getFinalists } from "@/lib/finalists";
 import { FinalFortyExperience } from "@/components/sections/FinalFortyExperience";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const finalist = await getFinalistBySlug(params.slug);

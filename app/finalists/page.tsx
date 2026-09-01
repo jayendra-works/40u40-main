@@ -1,8 +1,7 @@
 import { getFinalists } from "@/lib/finalists";
 import { FinalFortyExperience } from "@/components/sections/FinalFortyExperience";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata = {
   title: "The Final 40 | Asia Inc. 500",

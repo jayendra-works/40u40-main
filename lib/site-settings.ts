@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { unstable_cache } from "next/cache";
 
 export type HeroSetting = {
   headline: string;
@@ -212,12 +213,25 @@ function parseJson<T>(raw: string | null, fallback: T): T {
   }
 }
 
+/**
+ * Public pages read a number of CMS settings together. Reading them in one
+ * tagged, shared query avoids an N+1 database pattern on every render while
+ * still allowing admin saves to invalidate the cache immediately.
+ */
+const getSiteSettingsMap = unstable_cache(
+  async () => {
+    const rows = await prisma.siteSetting.findMany({
+      select: { key: true, value: true },
+    });
+    return Object.fromEntries(rows.map(({ key, value }) => [key, value]));
+  },
+  ["site-settings-map-v1"],
+  { revalidate: 3600, tags: ["site-settings"] }
+);
+
 export async function getSiteSetting(key: string): Promise<string | null> {
-  const row = await prisma.siteSetting.findUnique({
-    where: { key },
-    select: { value: true },
-  });
-  return row?.value ?? null;
+  const settings = await getSiteSettingsMap();
+  return settings[key] ?? null;
 }
 
 export async function getHeroSetting(): Promise<HeroSetting> {

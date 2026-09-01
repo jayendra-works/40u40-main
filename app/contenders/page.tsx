@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SpeakersSection } from "@/components/sections/SpeakersSection";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function ContendersPage() {
   const speakers = await prisma.speaker.findMany({
