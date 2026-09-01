@@ -84,6 +84,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -93,7 +94,12 @@ body {
   font-size: var(--text-body);
   line-height: var(--leading-body);
   letter-spacing: normal;
+  overflow-x: hidden;
 }
+
+/* Defensive mobile containment for animated editorial sections and long URLs. */
+img, svg, video, canvas { max-width: 100%; }
+input, textarea, select { min-width: 0; }
 
 /* Text selection */
 ::selection {

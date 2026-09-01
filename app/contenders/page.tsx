@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { SpeakersSection } from "@/components/sections/SpeakersSection";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Top Contenders | India's 40 Under 40 2026",
+  description: "Explore the top contenders for Asia Inc. 500's 40 Under 40 Summit & Awards 2026.",
+};
 
 export const revalidate = 300;
 

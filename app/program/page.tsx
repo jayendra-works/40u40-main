@@ -3,6 +3,12 @@ import { getMagazineFeatureSetting, getVisibilitySetting } from "@/lib/site-sett
 import { JurySection } from "@/components/sections/JurySection";
 import { MagazineFeatureSection } from "@/components/sections/MagazineFeatureSection";
 import { PartnersSection } from "@/components/sections/PartnersSection";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Programme | India's 40 Under 40 2026",
+  description: "Discover the jury, partners, and programme behind Asia Inc. 500's 40 Under 40 2026.",
+};
 
 /** Revalidate cached page every 60 seconds; admin actions revalidate on content change. */
 export const revalidate = 60;

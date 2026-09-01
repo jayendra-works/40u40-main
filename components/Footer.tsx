@@ -38,11 +38,11 @@ function MailIcon({ className }: IconProps) {
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Top Contenders", href: "/summit#contenders" },
-  { label: "Jury", href: "/program#jury" },
+  { label: "Top Contenders", href: "/contenders" },
+  { label: "Jury", href: "/jury" },
   { label: "Nominate", href: "/nominate" },
   { label: "Summit", href: "/summit" },
-  { label: "FAQ", href: "/program#faq" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 export function Footer({

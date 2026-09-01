@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { JurySection } from "@/components/sections/JurySection";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Jury | India's 40 Under 40 2026",
+  description: "Meet the independent jury guiding Asia Inc. 500's 40 Under 40 selection process.",
+};
 
 export const revalidate = 300;
 

@@ -6,15 +6,15 @@ import { Analytics } from "@/components/Analytics";
 import { getFooterAboutSetting, getSocialLinksSetting, getVisibilitySetting } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
-  title: "India's 40 Under 40 Summit & Awards 2026 | Asia Inc. 500",
+  title: {
+    default: "India's 40 Under 40 Summit & Awards 2026 | Asia Inc. 500",
+    template: "%s | Asia Inc. 500",
+  },
   description:
     "Recognizing the next generation of entrepreneurs, innovators, and changemakers shaping the future of India. Nominate now for India's 40 Under 40 Leaders 2026.",
-  metadataBase: new URL("https://40u40.asiainc500.com"),
-  icons: {
-    icon: "/Asia-Inc-500-logo.png",
-    apple: "/Asia-Inc-500-logo.png",
-    shortcut: "/Asia-Inc-500-logo.png",
-  },
+  metadataBase: new URL("https://40u40-main.vercel.app"),
+  alternates: { canonical: "/" },
+  icons: { icon: "/icon.png", apple: "/icon.png", shortcut: "/icon.png" },
   openGraph: {
     title: "India's 40 Under 40 Summit & Awards 2026 | Asia Inc. 500",
     description:
