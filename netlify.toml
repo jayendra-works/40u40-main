@@ -1,0 +1,15 @@
+# Netlify config for Next.js (Next Runtime)
+# Set all secrets in Netlify: Site settings → Environment variables (never commit .env).
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Build env
+[build.environment]
+  NODE_VERSION = "20"
+  # Cloud name appears in public image URLs; only API key/secret are secret. Omit from scan.
+  SECRETS_SCAN_OMIT_KEYS = "CLOUDINARY_CLOUD_NAME"

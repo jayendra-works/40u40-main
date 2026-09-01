@@ -1,0 +1,287 @@
+// India's 40 Under 40 — Nomination & Recognition Platform
+// PostgreSQL + Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Nomination pipeline ─────────────────────────────────────────────────────
+enum NomineeStatus {
+  submitted
+  under_review
+  shortlisted
+  finalist
+  winner
+}
+
+model Nominee {
+  id             String    @id @default(cuid())
+  name           String
+  email          String
+  linkedin       String?
+  instagramUrl  String?
+  websiteUrl    String?
+  profileUrl    String?
+  dob            DateTime? @db.Date
+  age            Int?
+  gender         String?
+  industry       String
+  company        String
+  designation    String
+  bio            String?   @db.Text
+  achievements   String    @db.Text
+  impactMetrics  String?   @db.Text // JSON or plain text
+  photoUrl       String?
+  status         NomineeStatus @default(submitted)
+  slug           String?   @unique // for winner profile URL
+  sortOrder      Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Consent & nomination type (from form)
+  consentGiven   Boolean?  @default(false)
+  nominationType String?   // "self" | "third_party"
+
+  // Additional form fields (aligned with Google Form)
+  personalLinks       String? @db.Text // website, portfolio, social links
+  revenueScale        String? @db.Text
+  companyImpact       String? @db.Text
+  fundingRaised       String? @db.Text
+  whyDeserves         String? @db.Text
+  awardsRecognition   String? @db.Text
+  mediaFeatures       String? @db.Text
+  companyWebsiteSocial String? @db.Text
+  anythingElse        String? @db.Text
+  supportingDocUrls   String? @db.Text // JSON array of URLs
+
+  nominations    Nomination[]
+  juryScores     JuryScore[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([sortOrder])
+}
+
+model Nomination {
+  id                  String   @id @default(cuid())
+  nomineeId           String
+  nominee             Nominee  @relation(fields: [nomineeId], references: [id], onDelete: Cascade)
+  nominatorName       String
+  nominatorEmail      String
+  relationship        String?
+  reasonForNomination String?  @db.Text
+  createdAt           DateTime @default(now())
+
+  @@index([nomineeId])
+}
+
+// ─── Jury & scoring ───────────────────────────────────────────────────────────
+model JuryMember {
+  id           String   @id @default(cuid())
+  name         String
+  title        String
+  organization String
+  category     String?
+  age          Int?
+  photo        String?
+  linkedinUrl  String?
+  instagramUrl String?
+  websiteUrl   String?
+  bio          String?  @db.Text
+  url          String?  // profile link: LinkedIn, company site, etc.
+  userId       String?  @unique // link to auth for jury login
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  juryScores   JuryScore[]
+
+  @@index([sortOrder])
+}
+
+model JuryScore {
+  id               String     @id @default(cuid())
+  nomineeId        String
+  nominee          Nominee    @relation(fields: [nomineeId], references: [id], onDelete: Cascade)
+  juryMemberId     String
+  juryMember       JuryMember @relation(fields: [juryMemberId], references: [id], onDelete: Cascade)
+  innovationScore  Int        // 1-10
+  impactScore     Int        // 1-10
+  leadershipScore Int        // 1-10
+  overallScore    Float?     // computed weighted
+  comments        String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([nomineeId, juryMemberId])
+  @@index([nomineeId])
+  @@index([juryMemberId])
+}
+
+// ─── Sponsors (CMS-managed) ───────────────────────────────────────────────────
+enum SponsorTier {
+  title_partner
+  strategic_partner
+  media_partner
+  community_partner
+}
+
+model Sponsor {
+  id          String      @id @default(cuid())
+  name        String
+  tier        SponsorTier
+  logo        String?
+  website     String?
+  description String?     @db.Text
+  sortOrder   Int         @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([tier])
+}
+
+// ─── Site-wide content (editable via admin) ──────────────────────────────────
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "hero", "about", "stats", "social_links", "summit_date"
+  value     String   @db.Text // JSON
+  updatedAt DateTime @updatedAt
+}
+
+// ─── CMS-style content (editable via admin) ───────────────────────────────────
+model Faq {
+  id        String   @id @default(cuid())
+  question  String   @db.Text
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgendaItem {
+  id          String   @id @default(cuid())
+  time        String   // e.g. "09:00"
+  sessionTitle String
+  speaker     String?
+  description String?  @db.Text
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Speaker {
+  id           String   @id @default(cuid())
+  name         String
+  title        String
+  organization String?
+  category     String?
+  age          Int?
+  photo        String?
+  bio          String?  @db.Text
+  linkedinUrl  String?
+  instagramUrl String?
+  websiteUrl   String?
+  profileUrl   String?
+  /// Featured in the fixed Top Contenders selection. Every record appears in Finalists.
+  isTopContender Boolean @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/// Emails collected from the summit page when venue & date are not yet public.
+model SummitVenueDateSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?  @db.Text
+  content     String   @db.Text
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+/// Homepage editorial announcement. Only one active notice is shown at a time.
+model NoticeBoardItem {
+  id          String   @id @default(cuid())
+  title       String
+  eyebrow     String?  
+  description String?  @db.Text
+  image       String?
+  ctaLabel    String?
+  ctaUrl      String?
+  isActive    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+// ─── Auth (for admin & jury) ──────────────────────────────────────────────────
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          String    // "admin" | "jury"
+  passwordHash  String?
+  juryMemberId  String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

@@ -1,0 +1,12 @@
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { createAdminUser } from "@/app/actions/admin-users";
+
+export default async function AdminUsersPage() {
+  const session = await getServerSession(authOptions);
+  if ((session?.user as { role?: string } | undefined)?.role !== "admin") redirect("/admin/login");
+  const admins = await prisma.user.findMany({ where: { role: "admin" }, select: { id: true, name: true, email: true, createdAt: true }, orderBy: { createdAt: "desc" } });
+  return <div className="p-6 lg:p-8"><h1 className="font-display text-3xl text-white">Admin users</h1><p className="mt-2 text-sm text-neutral-400">Create secure administrator accounts for the 40 Under 40 platform.</p><div className="mt-8 grid max-w-5xl gap-8 lg:grid-cols-[400px_1fr]"><form action={createAdminUser} className="space-y-4 rounded-xl border border-neutral-600 bg-secondary/20 p-5"><h2 className="font-display text-2xl">Add administrator</h2><label className="block text-sm text-neutral-400">Name<input name="name" className="mt-1 w-full rounded border border-neutral-600 bg-primary px-3 py-2 text-white" /></label><label className="block text-sm text-neutral-400">Email<input required type="email" name="email" className="mt-1 w-full rounded border border-neutral-600 bg-primary px-3 py-2 text-white" /></label><label className="block text-sm text-neutral-400">Temporary password<input required type="password" minLength={12} name="password" className="mt-1 w-full rounded border border-neutral-600 bg-primary px-3 py-2 text-white" /><span className="mt-1 block text-xs text-neutral-500">At least 12 characters.</span></label><button className="rounded bg-gold px-4 py-2 text-sm font-medium text-primary">Create admin</button></form><section className="rounded-xl border border-neutral-600"><div className="border-b border-neutral-600 px-5 py-4 text-sm text-neutral-400">Current administrators ({admins.length})</div>{admins.map(admin=><div key={admin.id} className="flex items-center justify-between gap-4 border-b border-neutral-600 px-5 py-4 last:border-0"><div><p className="text-white">{admin.name || "Unnamed administrator"}</p><p className="mt-1 text-sm text-neutral-400">{admin.email}</p></div><p className="text-xs text-neutral-500">{admin.createdAt.toLocaleDateString()}</p></div>)}</section></div></div>;
+}
