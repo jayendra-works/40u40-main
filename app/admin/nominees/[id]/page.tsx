@@ -46,6 +46,13 @@ function parseSupportingDocUrls(json: string | null): string[] {
   }
 }
 
+function adminFileUrl(url: string, download = false): string {
+  if (!url.includes(".private.blob.vercel-storage.com/")) return url;
+  const params = new URLSearchParams({ url });
+  if (download) params.set("download", "1");
+  return `/api/admin/uploads?${params.toString()}`;
+}
+
 export default async function AdminNomineeReviewPage({
   params,
 }: { params: Promise<{ id: string }> }) {
@@ -70,10 +77,11 @@ export default async function AdminNomineeReviewPage({
         <div className="flex-shrink-0">
           {nominee.photoUrl ? (
             <Image
-              src={nominee.photoUrl}
+              src={adminFileUrl(nominee.photoUrl)}
               alt={nominee.name}
               width={160}
               height={160}
+              unoptimized
               className="rounded-xl object-cover"
             />
           ) : (
@@ -171,7 +179,7 @@ export default async function AdminNomineeReviewPage({
           <ul className="space-y-2">
             {supportingDocs.map((url, i) => (
               <li key={i}>
-                <a href={url} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline break-all text-sm">
+                <a href={adminFileUrl(url, true)} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline break-all text-sm">
                   Document {i + 1}
                 </a>
               </li>

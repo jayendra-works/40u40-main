@@ -87,6 +87,10 @@ export async function submitNominationForm(formData: FormData): Promise<SubmitNo
 
   const docs = formData.getAll("supportingDocs") as File[];
   const docFiles = docs.filter((f) => f && f.size > 0);
+  const totalUploadBytes = photo.size + docFiles.reduce((total, file) => total + file.size, 0);
+  if (totalUploadBytes > 3 * 1024 * 1024) {
+    return { success: false, error: "Keep the combined photo and supporting documents under 3 MB." };
+  }
   if (docFiles.length > 0) {
     const result = await saveSupportingDocs(docFiles, subdir);
     if (!result.success) return { success: false, error: result.error };

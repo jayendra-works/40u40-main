@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Nomination uploads are stored in Blob. Keep the form payload below the
+    // serverless request ceiling while allowing a practical set of documents.
+    serverActions: { bodySizeLimit: "4mb" },
+  },
   async headers() {
     return [
       {

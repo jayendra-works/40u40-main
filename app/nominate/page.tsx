@@ -534,7 +534,7 @@ export default function NominatePage() {
             </legend>
             <div>
               <label htmlFor="photo" className={LABEL_CLASS}>
-                High-resolution photo of the nominee * (JPG or PNG, max 10 MB)
+                High-resolution photo of the nominee * (JPG or PNG, max 3 MB)
               </label>
               <input
                 id="photo"
@@ -567,7 +567,7 @@ export default function NominatePage() {
               Supporting Documents
             </legend>
             <p className="text-[9px] uppercase tracking-[0.15em] text-[#EAE6E1]/30 mb-4">
-              Upload up to 5 files: PDF, DOC, PPT, or images. Max 100 MB per file. (Optional)
+              Upload up to 5 files: PDF, DOC, PPT, or images. Max 3 MB per file; all uploads together must be under 3 MB. (Optional)
             </p>
             <div>
               <input
