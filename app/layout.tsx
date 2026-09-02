@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ConditionalSiteLayout } from "@/components/ConditionalSiteLayout";
 import { Analytics } from "@/components/Analytics";
 import { getFooterAboutSetting, getSocialLinksSetting, getVisibilitySetting } from "@/lib/site-settings";
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
   description:
     "Recognizing the next generation of entrepreneurs, innovators, and changemakers shaping the future of India. Nominate now for India's 40 Under 40 Leaders 2026.",
   metadataBase: new URL("https://40u40-main.vercel.app"),
-  alternates: { canonical: "/" },
   icons: { icon: "/icon.png", apple: "/icon.png", shortcut: "/icon.png" },
   openGraph: {
     title: "India's 40 Under 40 Summit & Awards 2026 | Asia Inc. 500",
@@ -51,15 +49,13 @@ export default async function RootLayout({
     <html lang="en">
       <body className="min-h-screen font-sans antialiased bg-primary">
         <Analytics />
-        <SessionProvider>
-          <ConditionalSiteLayout
-            footerAbout={footerAbout}
-            socialLinks={socialLinksSetting.links}
-            showFooter={visibility.showFooter}
-          >
-            {children}
-          </ConditionalSiteLayout>
-        </SessionProvider>
+        <ConditionalSiteLayout
+          footerAbout={footerAbout}
+          socialLinks={socialLinksSetting.links}
+          showFooter={visibility.showFooter}
+        >
+          {children}
+        </ConditionalSiteLayout>
       </body>
     </html>
   );

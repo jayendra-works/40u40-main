@@ -3,7 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function csvEscape(value: unknown): string {
-  const str = value == null ? "" : String(value);
+  let str = value == null ? "" : String(value);
+  // Prevent spreadsheet applications interpreting untrusted fields as formulas.
+  if (/^[=+\-@]/.test(str)) str = `'${str}`;
   const needsQuotes = /[",\n\r]/.test(str);
   const escaped = str.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;

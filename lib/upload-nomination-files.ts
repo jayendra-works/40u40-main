@@ -57,18 +57,18 @@ export async function saveNominationPhoto(
   const buffer = Buffer.from(bytes);
   const filename = `photo_${Date.now()}${ext}`;
 
-  if (isCloudinaryConfigured()) {
-    const result = await uploadToCloudinary(buffer, filename, getMimeType(filename), subdir);
-    if (!result.success) return result;
-    return { success: true, url: result.url };
-  }
-
   if (isBlobConfigured()) {
     try {
       return { success: true, url: await uploadPrivateBlob(buffer, filename, getMimeType(filename), subdir) };
     } catch {
       return { success: false, error: "Secure file storage is temporarily unavailable. Please try again." };
     }
+  }
+
+  if (isCloudinaryConfigured()) {
+    const result = await uploadToCloudinary(buffer, filename, getMimeType(filename), subdir);
+    if (!result.success) return result;
+    return { success: true, url: result.url };
   }
 
   const dir = path.join(process.cwd(), UPLOAD_DIR, subdir);
@@ -89,21 +89,6 @@ export async function saveSupportingDocs(
 
   const urls: string[] = [];
 
-  if (isCloudinaryConfigured()) {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.size > DOC_MAX_BYTES) return { success: false, error: "Each file must be 3 MB or less." };
-      const ext = path.extname(file.name).toLowerCase();
-      if (!DOC_EXT.includes(ext)) return { success: false, error: "Allowed: PDF, DOC, PPT, or images." };
-      const filename = `doc_${i}_${Date.now()}${ext}`;
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const result = await uploadToCloudinary(buffer, filename, getMimeType(filename), subdir);
-      if (!result.success) return result;
-      urls.push(result.url);
-    }
-    return { success: true, urls };
-  }
-
   if (isBlobConfigured()) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -116,6 +101,21 @@ export async function saveSupportingDocs(
       } catch {
         return { success: false, error: "Secure file storage is temporarily unavailable. Please try again." };
       }
+    }
+    return { success: true, urls };
+  }
+
+  if (isCloudinaryConfigured()) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > DOC_MAX_BYTES) return { success: false, error: "Each file must be 3 MB or less." };
+      const ext = path.extname(file.name).toLowerCase();
+      if (!DOC_EXT.includes(ext)) return { success: false, error: "Allowed: PDF, DOC, PPT, or images." };
+      const filename = `doc_${i}_${Date.now()}${ext}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const result = await uploadToCloudinary(buffer, filename, getMimeType(filename), subdir);
+      if (!result.success) return result;
+      urls.push(result.url);
     }
     return { success: true, urls };
   }

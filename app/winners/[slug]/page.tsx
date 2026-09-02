@@ -17,8 +17,9 @@ export async function generateMetadata({
   });
   if (!nominee) return { title: "Winner | 40 Under 40" };
   return {
-    title: `${nominee.name} | India's 40 Under 40 2026 | Asia Inc. 500`,
+    title: `${nominee.name} | India's 40 Under 40 2026`,
     description: `${nominee.name}, ${nominee.designation} at ${nominee.company}. India's 40 Under 40 winner 2026.`,
+    alternates: { canonical: `/winners/${nominee.slug}` },
     openGraph: {
       title: `${nominee.name} | 40 Under 40 2026`,
       description: `${nominee.designation} at ${nominee.company}. India's 40 Under 40 winner.`,

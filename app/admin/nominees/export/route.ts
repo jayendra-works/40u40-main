@@ -3,7 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function csvEscape(value: unknown): string {
-  const str = value == null ? "" : String(value);
+  let str = value == null ? "" : String(value);
+  // Prevent spreadsheet applications interpreting untrusted fields as formulas.
+  if (/^[=+\-@]/.test(str)) str = `'${str}`;
   const needsQuotes = /[",\n\r]/.test(str);
   const escaped = str.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;
@@ -20,7 +22,8 @@ export async function GET(req: Request) {
   const ids = idsParam
     .split(",")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, 500);
 
   if (ids.length === 0) {
     return new Response("Missing ids", { status: 400 });
@@ -132,4 +135,3 @@ export async function GET(req: Request) {
     },
   });
 }
-

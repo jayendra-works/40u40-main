@@ -8,8 +8,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const finalist = await getFinalistBySlug(params.slug);
   if (!finalist) return {};
   return {
-    title: `${finalist.name} | The Final 40 | Asia Inc. 500`,
+    title: `${finalist.name} | The Final 40`,
     description: finalist.bio ?? finalist.title,
+    alternates: { canonical: `/finalists/${finalist.slug}` },
     openGraph: { images: finalist.photo ? [finalist.photo] : [] },
   };
 }
