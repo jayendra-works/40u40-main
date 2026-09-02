@@ -49,6 +49,17 @@ function formDataToPayload(formData: FormData): Record<string, unknown> {
 }
 
 export async function submitNominationForm(formData: FormData): Promise<SubmitNominationResult> {
+  try {
+    return await submitNominationFormInternal(formData);
+  } catch (error) {
+    // Server Actions otherwise reject at the transport layer, leaving the
+    // visitor without a usable error state. Keep details in server logs only.
+    console.error("Nomination request failed before persistence:", error);
+    return { success: false, error: "We could not submit the nomination. Please try again in a few minutes." };
+  }
+}
+
+async function submitNominationFormInternal(formData: FormData): Promise<SubmitNominationResult> {
   const headersList = await headers();
   const ip =
     headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headersList.get("x-real-ip") ?? "anonymous";
