@@ -12,9 +12,21 @@ const NOMINATION_TYPES: { value: NominationTypeOption; label: string }[] = [
 ];
 
 const INPUT_CLASS =
-  "w-full bg-transparent border-b border-[#EAE6E1]/15 px-0 py-3 text-sm text-[#EAE6E1] placeholder-[#EAE6E1]/20 focus:outline-none focus:border-[#C5B397] transition-colors duration-300";
+  "w-full bg-transparent border-b border-[#EAE6E1]/15 px-0 py-3 text-sm text-[#EAE6E1] placeholder-[#EAE6E1]/20 focus:outline-none focus:border-[#C5B397] aria-[invalid=true]:border-red-400 aria-[invalid=true]:text-red-100 transition-colors duration-300";
 const LABEL_CLASS = "block text-[11px] uppercase tracking-[0.25em] font-medium text-[#EAE6E1]/40 mb-2";
 const ERROR_CLASS = "mt-1 text-[10px] uppercase tracking-[0.15em] text-red-400";
+
+function ageOnEligibilityDate(dateOfBirth: string): number | null {
+  const birthDate = new Date(`${dateOfBirth}T00:00:00.000Z`);
+  if (Number.isNaN(birthDate.getTime())) return null;
+  const eligibilityDate = new Date(Date.UTC(new Date().getUTCFullYear(), 11, 31));
+  let age = eligibilityDate.getUTCFullYear() - birthDate.getUTCFullYear();
+  const birthdayHasOccurred =
+    eligibilityDate.getUTCMonth() > birthDate.getUTCMonth() ||
+    (eligibilityDate.getUTCMonth() === birthDate.getUTCMonth() && eligibilityDate.getUTCDate() >= birthDate.getUTCDate());
+  if (!birthdayHasOccurred) age -= 1;
+  return age;
+}
 
 interface FormState {
   consentGiven: boolean;
@@ -86,12 +98,18 @@ export default function NominatePage() {
   const [state, setState] = useState<FormState>(INITIAL_STATE);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const update = useCallback(
     <K extends keyof FormState>(field: K, value: FormState[K]) => {
       setState((prev) => ({ ...prev, [field]: value }));
       setSubmitError(null);
+      setFieldErrors((previous) => {
+        if (!previous[field]) return previous;
+        const { [field]: _cleared, ...remaining } = previous;
+        return remaining;
+      });
     },
     []
   );
@@ -133,24 +151,71 @@ export default function NominatePage() {
     return fd;
   }, [state]);
 
+  const validate = useCallback(() => {
+    const errors: Record<string, string> = {};
+    const required: Array<[keyof FormState, string]> = [
+      ["fullName", "Enter the nominee’s full name."],
+      ["designation", "Enter the current designation."],
+      ["company", "Enter the organization or company name."],
+      ["industry", "Enter an industry category."],
+      ["email", "Enter a valid email address."],
+      ["linkedIn", "Enter a valid LinkedIn URL."],
+      ["companyImpact", "Describe the company’s impact."],
+      ["whyDeserves", "Explain why the nominee deserves recognition."],
+      ["bio", "Add a professional bio of at least 20 words."],
+    ];
+
+    for (const [field, message] of required) {
+      if (!String(state[field] ?? "").trim()) errors[field] = message;
+    }
+    if (!state.consentGiven) errors.consentGiven = "You must agree before submitting.";
+    const age = Number(state.age);
+    if (!Number.isInteger(age) || age < 1 || age >= 40) errors.age = "The nominee must be between 1 and 39 years old.";
+    if (!state.dateOfBirth) errors.dateOfBirth = "Enter the nominee’s date of birth.";
+    else if (Number.isInteger(age) && ageOnEligibilityDate(state.dateOfBirth) !== age) {
+      errors.dateOfBirth = "The date of birth must match the age as of 31 December this year.";
+    }
+    if (!GENDER_OPTIONS.includes(state.gender as GenderOption)) errors.gender = "Select a gender option.";
+    if (state.email && !/^\S+@\S+\.\S+$/.test(state.email)) errors.email = "Enter a valid email address.";
+    for (const field of ["linkedIn", "instagramUrl", "websiteUrl", "profileUrl"] as const) {
+      if (state[field]) {
+        try {
+          const url = new URL(state[field]);
+          if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error();
+        } catch {
+          errors[field] = "Enter a complete http(s) URL.";
+        }
+      }
+    }
+    if (state.bio.trim() && state.bio.trim().split(/\s+/).length < 20) errors.bio = "Use at least 20 words in the bio.";
+    if (!state.photo) errors.photo = "Attach a JPG or PNG photo.";
+    else if (!["image/jpeg", "image/png"].includes(state.photo.type)) errors.photo = "Use a JPG or PNG photo.";
+    else if (state.photo.size > 3 * 1024 * 1024) errors.photo = "Use a photo smaller than 3 MB.";
+    if (state.nominationType === "third_party") {
+      if (!state.nominatorName.trim()) errors.nominatorName = "Enter your name.";
+      if (!/^\S+@\S+\.\S+$/.test(state.nominatorEmail)) errors.nominatorEmail = "Enter your valid email address.";
+    }
+    return errors;
+  }, [state]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!state.consentGiven) {
-        setSubmitError("You must agree to participate to submit.");
-        return;
-      }
-      if (!state.photo) {
-        setSubmitError("A high-resolution photo of the nominee is required.");
+      const errors = validate();
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setSubmitError("Please correct the highlighted fields before submitting.");
         return;
       }
 
-      const totalUploadBytes = state.photo.size + state.supportingDocs.reduce((total, file) => total + file.size, 0);
+      const totalUploadBytes = (state.photo?.size ?? 0) + state.supportingDocs.reduce((total, file) => total + file.size, 0);
       if (state.supportingDocs.length > 5) {
+        setFieldErrors({ supportingDocs: "Attach no more than five supporting documents." });
         setSubmitError("Please attach no more than five supporting documents.");
         return;
       }
       if (totalUploadBytes > 3 * 1024 * 1024) {
+        setFieldErrors({ supportingDocs: "Keep all uploads together under 3 MB." });
         setSubmitError("Keep the combined photo and supporting documents under 3 MB.");
         return;
       }
@@ -166,13 +231,21 @@ export default function NominatePage() {
         if (result.success) setSubmitted(true);
         else setSubmitError(result.error ?? "We could not submit the nomination. Please try again.");
       } catch {
-        setSubmitError("We could not submit the nomination. Please retry once; if it continues, use a smaller photo or try again in a few minutes.");
+        setSubmitError("The form could not reach the server. Your nomination was not submitted. Check your connection and try again.");
       } finally {
         setLoading(false);
       }
     },
-    [state, buildFormData]
+    [state, buildFormData, validate]
   );
+
+  const errorFor = (field: keyof FormState) => fieldErrors[field];
+  const FieldError = ({ field }: { field: keyof FormState }) =>
+    errorFor(field) ? <p id={`${field}-error`} className={ERROR_CLASS}>{errorFor(field)}</p> : null;
+  const invalidProps = (field: keyof FormState) => ({
+    "aria-invalid": Boolean(errorFor(field)),
+    "aria-describedby": errorFor(field) ? `${field}-error` : undefined,
+  });
 
   if (submitted) {
     return (
@@ -213,7 +286,7 @@ export default function NominatePage() {
       </div>
 
       <div className="px-6 md:px-24 mx-auto max-w-4xl">
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} noValidate className="space-y-10">
           {/* Informed Consent */}
           <fieldset className="space-y-4">
             <legend className="font-display text-3xl italic text-[#EAE6E1] mb-8 block border-b border-[#EAE6E1]/5 pb-4">
@@ -225,15 +298,18 @@ export default function NominatePage() {
             </p>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
+                id="consentGiven"
                 type="checkbox"
                 checked={state.consentGiven}
                 onChange={(e) => update("consentGiven", e.target.checked)}
+                {...invalidProps("consentGiven")}
                 className="mt-1 border border-[#EAE6E1]/20 bg-transparent text-[#C5B397] focus:ring-[#C5B397] focus:ring-offset-[#131210] rounded-none accent-[#C5B397]"
               />
               <span className="text-[11px] uppercase tracking-[0.15em] font-light text-[#EAE6E1]/60">
                 Do you voluntarily agree to participate in this nomination? *
               </span>
             </label>
+            <FieldError field="consentGiven" />
             <div>
               <span className={LABEL_CLASS}>Nomination Type *</span>
               <div className="flex flex-wrap gap-4 mt-2">
@@ -264,7 +340,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder={isThirdParty ? "Your full name" : "NA"}
                 disabled={!isThirdParty}
+                {...invalidProps("nominatorName")}
               />
+              <FieldError field="nominatorName" />
             </div>
             <div>
               <label htmlFor="relationship" className={LABEL_CLASS}>
@@ -278,6 +356,7 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder={isThirdParty ? "e.g. Colleague, Manager" : "NA"}
                 disabled={!isThirdParty}
+                {...invalidProps("relationship")}
               />
             </div>
           </fieldset>
@@ -297,7 +376,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="Full name"
                 required
+                {...invalidProps("fullName")}
               />
+              <FieldError field="fullName" />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -312,7 +393,9 @@ export default function NominatePage() {
                   className={INPUT_CLASS}
                   placeholder="Age"
                   required
+                  {...invalidProps("age")}
                 />
+                <FieldError field="age" />
               </div>
               <div>
                 <label htmlFor="dateOfBirth" className={LABEL_CLASS}>Date of Birth *</label>
@@ -323,7 +406,9 @@ export default function NominatePage() {
                   onChange={(e) => update("dateOfBirth", e.target.value)}
                   className={INPUT_CLASS}
                   required
+                  {...invalidProps("dateOfBirth")}
                 />
+                <FieldError field="dateOfBirth" />
               </div>
             </div>
             <div>
@@ -334,12 +419,14 @@ export default function NominatePage() {
                 onChange={(e) => update("gender", e.target.value)}
                 className={INPUT_CLASS}
                 required
+                {...invalidProps("gender")}
               >
                 <option value="">Select</option>
                 {GENDER_OPTIONS.map((g) => (
                   <option key={g} value={g}>{g}</option>
                 ))}
               </select>
+              <FieldError field="gender" />
             </div>
             <div>
               <label htmlFor="designation" className={LABEL_CLASS}>Current Designation / Title *</label>
@@ -351,7 +438,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="e.g. CEO, Founder"
                 required
+                {...invalidProps("designation")}
               />
+              <FieldError field="designation" />
             </div>
             <div>
               <label htmlFor="company" className={LABEL_CLASS}>Organization / Company Name *</label>
@@ -363,7 +452,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="Company name"
                 required
+                {...invalidProps("company")}
               />
+              <FieldError field="company" />
             </div>
             <div>
               <label htmlFor="industry" className={LABEL_CLASS}>Industry Category *</label>
@@ -375,7 +466,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="e.g. Technology, Finance"
                 required
+                {...invalidProps("industry")}
               />
+              <FieldError field="industry" />
             </div>
             <div>
               <label htmlFor="email" className={LABEL_CLASS}>Email *</label>
@@ -387,7 +480,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="nominee@example.com"
                 required
+                {...invalidProps("email")}
               />
+              <FieldError field="email" />
             </div>
             <div>
               <label htmlFor="linkedIn" className={LABEL_CLASS}>LinkedIn Profile URL *</label>
@@ -399,7 +494,9 @@ export default function NominatePage() {
                 className={INPUT_CLASS}
                 placeholder="https://linkedin.com/in/..."
                 required
+                {...invalidProps("linkedIn")}
               />
+              <FieldError field="linkedIn" />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -411,7 +508,9 @@ export default function NominatePage() {
                   onChange={(e) => update("instagramUrl", e.target.value)}
                   className={INPUT_CLASS}
                   placeholder="https://instagram.com/..."
+                  {...invalidProps("instagramUrl")}
                 />
+                <FieldError field="instagramUrl" />
               </div>
               <div>
                 <label htmlFor="websiteUrl" className={LABEL_CLASS}>Website URL</label>
@@ -422,7 +521,9 @@ export default function NominatePage() {
                   onChange={(e) => update("websiteUrl", e.target.value)}
                   className={INPUT_CLASS}
                   placeholder="https://..."
+                  {...invalidProps("websiteUrl")}
                 />
+                <FieldError field="websiteUrl" />
               </div>
             </div>
             <div>
@@ -434,7 +535,9 @@ export default function NominatePage() {
                 onChange={(e) => update("profileUrl", e.target.value)}
                 className={INPUT_CLASS}
                 placeholder="https://..."
+                {...invalidProps("profileUrl")}
               />
+              <FieldError field="profileUrl" />
             </div>
             <div>
               <label htmlFor="personalLinks" className={LABEL_CLASS}>
@@ -481,7 +584,9 @@ export default function NominatePage() {
                 className={`${INPUT_CLASS} resize-y`}
                 placeholder="Describe impact..."
                 required
+                {...invalidProps("companyImpact")}
               />
+              <FieldError field="companyImpact" />
             </div>
             <div>
               <label htmlFor="fundingRaised" className={LABEL_CLASS}>
@@ -515,7 +620,9 @@ export default function NominatePage() {
                 className={`${INPUT_CLASS} resize-y`}
                 placeholder="Be specific about impact and achievements..."
                 required
+                {...invalidProps("whyDeserves")}
               />
+              <FieldError field="whyDeserves" />
             </div>
             <div>
               <label htmlFor="awardsRecognition" className={LABEL_CLASS}>
@@ -560,7 +667,9 @@ export default function NominatePage() {
                 accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 onChange={(e) => update("photo", e.target.files?.[0] ?? null)}
                 className={`${INPUT_CLASS} file:mr-6 file:py-2 file:px-6 file:border file:border-[#EAE6E1]/20 file:bg-transparent file:text-[#EAE6E1]/60 file:text-[9px] file:uppercase file:tracking-[0.2em] file:font-medium file:rounded-none hover:file:border-[#C5B397]/40 hover:file:text-[#C5B397] file:transition-colors`}
+                {...invalidProps("photo")}
               />
+              <FieldError field="photo" />
             </div>
             <div>
               <label htmlFor="bio" className={LABEL_CLASS}>
@@ -574,7 +683,9 @@ export default function NominatePage() {
                 className={`${INPUT_CLASS} resize-y`}
                 placeholder="Short biography of the nominee..."
                 required
+                {...invalidProps("bio")}
               />
+              <FieldError field="bio" />
               <p className="mt-2 text-[9px] uppercase tracking-[0.15em] text-[#EAE6E1]/25">Minimum ~20 words; 100–200 words recommended.</p>
             </div>
           </fieldset>
@@ -589,6 +700,7 @@ export default function NominatePage() {
             </p>
             <div>
               <input
+                id="supportingDocs"
                 type="file"
                 accept=".pdf,.doc,.docx,.ppt,.pptx,image/*"
                 multiple
@@ -596,7 +708,9 @@ export default function NominatePage() {
                   update("supportingDocs", e.target.files ? Array.from(e.target.files) : [])
                 }
                 className={`${INPUT_CLASS} file:mr-6 file:py-2 file:px-6 file:border file:border-[#EAE6E1]/20 file:bg-transparent file:text-[#EAE6E1]/60 file:text-[9px] file:uppercase file:tracking-[0.2em] file:font-medium file:rounded-none hover:file:border-[#C5B397]/40 hover:file:text-[#C5B397] file:transition-colors`}
+                {...invalidProps("supportingDocs")}
               />
+              <FieldError field="supportingDocs" />
             </div>
           </fieldset>
 
@@ -649,7 +763,9 @@ export default function NominatePage() {
                   className={INPUT_CLASS}
                   placeholder="you@example.com"
                   required={isThirdParty}
+                  {...invalidProps("nominatorEmail")}
                 />
+                <FieldError field="nominatorEmail" />
               </div>
               <div>
                 <label htmlFor="reasonForNomination" className={LABEL_CLASS}>
@@ -668,7 +784,16 @@ export default function NominatePage() {
           )}
 
           {submitError && (
-            <p className="text-[10px] uppercase tracking-[0.15em] text-red-400 bg-red-400/10 px-4 py-3 border border-red-400/20">{submitError}</p>
+            <div role="alert" aria-live="assertive" className="border border-red-400/50 bg-red-400/10 px-4 py-4 text-red-200">
+              <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-red-400">{submitError}</p>
+              {Object.keys(fieldErrors).length > 0 && (
+                <ul className="mt-3 list-disc space-y-1 pl-4 text-xs leading-relaxed text-red-100">
+                  {Object.entries(fieldErrors).map(([field, message]) => (
+                    <li key={field}>{message}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-5 pt-8">
