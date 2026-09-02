@@ -145,13 +145,28 @@ export default function NominatePage() {
         setSubmitError("A high-resolution photo of the nominee is required.");
         return;
       }
+
+      const totalUploadBytes = state.photo.size + state.supportingDocs.reduce((total, file) => total + file.size, 0);
+      if (state.supportingDocs.length > 5) {
+        setSubmitError("Please attach no more than five supporting documents.");
+        return;
+      }
+      if (totalUploadBytes > 3 * 1024 * 1024) {
+        setSubmitError("Keep the combined photo and supporting documents under 3 MB.");
+        return;
+      }
+
       setLoading(true);
       setSubmitError(null);
-      const formData = buildFormData();
-      const result = await submitNominationForm(formData);
-      setLoading(false);
-      if (result.success) setSubmitted(true);
-      else setSubmitError(result.error);
+      try {
+        const result = await submitNominationForm(buildFormData());
+        if (result.success) setSubmitted(true);
+        else setSubmitError(result.error);
+      } catch {
+        setSubmitError("We could not submit the nomination. Please retry once; if it continues, use a smaller photo or try again in a few minutes.");
+      } finally {
+        setLoading(false);
+      }
     },
     [state, buildFormData]
   );
