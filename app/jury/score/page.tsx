@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { JuryScoringList } from "../JuryScoringList";
-import { JuryRanking } from "../JuryRanking";
 
 export default async function JuryDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -35,7 +34,6 @@ export default async function JuryDashboardPage() {
         Jury Evaluation
       </h1>
       <p className="text-neutral-400 mb-8">Logged in as {juryMember?.name ?? "Jury"}</p>
-      <JuryRanking juryMemberId={juryMemberId} />
       <h2 className="font-display text-xl font-bold text-white mt-10 mb-4">
         Score nominees
       </h2>

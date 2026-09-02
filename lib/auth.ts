@@ -7,7 +7,8 @@ import { verifyPassword } from "@/lib/password";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
+  // Privileged editorial and jury accounts should not retain a month-long token.
+  session: { strategy: "jwt", maxAge: 12 * 60 * 60 },
   pages: { signIn: "/admin/login" },
   providers: [
     CredentialsProvider({
