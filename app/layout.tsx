@@ -30,10 +30,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Keep database-backed server rendering close to the Singapore production DB.
-// Static pages are still delivered globally from the edge cache.
-export const preferredRegion = "sin1";
-
 export default async function RootLayout({
   children,
 }: Readonly<{

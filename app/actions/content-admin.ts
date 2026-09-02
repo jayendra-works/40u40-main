@@ -4,6 +4,13 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  agendaItemSchema,
+  contentIdSchema,
+  faqSchema,
+  parseAdminInput,
+  speakerSchema,
+} from "@/lib/validations/admin-content";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -15,7 +22,8 @@ async function requireAdmin() {
 // FAQs
 export async function createFaq(question: string, answer: string, sortOrder?: number) {
   await requireAdmin();
-  await prisma.faq.create({ data: { question, answer, sortOrder: sortOrder ?? 0 } });
+  const data = parseAdminInput(faqSchema, { question, answer, sortOrder });
+  await prisma.faq.create({ data });
   revalidatePath("/admin/content");
   revalidatePath("/");
   revalidatePath("/program");
@@ -24,9 +32,11 @@ export async function createFaq(question: string, answer: string, sortOrder?: nu
 
 export async function updateFaq(id: string, question: string, answer: string, sortOrder?: number) {
   await requireAdmin();
+  const safeId = parseAdminInput(contentIdSchema, id);
+  const data = parseAdminInput(faqSchema, { question, answer, sortOrder });
   await prisma.faq.update({
-    where: { id },
-    data: { question, answer, sortOrder: sortOrder ?? 0 },
+    where: { id: safeId },
+    data,
   });
   revalidatePath("/admin/content");
   revalidatePath("/");
@@ -36,7 +46,7 @@ export async function updateFaq(id: string, question: string, answer: string, so
 
 export async function deleteFaq(id: string) {
   await requireAdmin();
-  await prisma.faq.delete({ where: { id } });
+  await prisma.faq.delete({ where: { id: parseAdminInput(contentIdSchema, id) } });
   revalidatePath("/admin/content");
   revalidatePath("/");
   revalidatePath("/program");
@@ -52,8 +62,9 @@ export async function createAgendaItem(data: {
   sortOrder?: number;
 }) {
   await requireAdmin();
+  const safeData = parseAdminInput(agendaItemSchema, data);
   await prisma.agendaItem.create({
-    data: { ...data, sortOrder: data.sortOrder ?? 0 },
+    data: safeData,
   });
   revalidatePath("/admin/content");
   revalidatePath("/agenda");
@@ -71,9 +82,10 @@ export async function updateAgendaItem(
   }
 ) {
   await requireAdmin();
+  const safeData = parseAdminInput(agendaItemSchema, data);
   await prisma.agendaItem.update({
-    where: { id },
-    data: { ...data, sortOrder: data.sortOrder ?? 0 },
+    where: { id: parseAdminInput(contentIdSchema, id) },
+    data: safeData,
   });
   revalidatePath("/admin/content");
   revalidatePath("/agenda");
@@ -82,7 +94,7 @@ export async function updateAgendaItem(
 
 export async function deleteAgendaItem(id: string) {
   await requireAdmin();
-  await prisma.agendaItem.delete({ where: { id } });
+  await prisma.agendaItem.delete({ where: { id: parseAdminInput(contentIdSchema, id) } });
   revalidatePath("/admin/content");
   revalidatePath("/agenda");
   revalidatePath("/summit");
@@ -105,11 +117,9 @@ export async function createSpeaker(data: {
     sortOrder?: number;
 }) {
   await requireAdmin();
+  const safeData = parseAdminInput(speakerSchema, data);
   await prisma.speaker.create({
-    data: {
-      ...data,
-      sortOrder: data.sortOrder ?? 0,
-    },
+    data: safeData,
   });
   revalidatePath("/admin/content");
   revalidatePath("/");
@@ -139,12 +149,10 @@ export async function updateSpeaker(
   }
 ) {
   await requireAdmin();
+  const safeData = parseAdminInput(speakerSchema, data);
   await prisma.speaker.update({
-    where: { id },
-    data: {
-      ...data,
-      sortOrder: data.sortOrder ?? 0,
-    },
+    where: { id: parseAdminInput(contentIdSchema, id) },
+    data: safeData,
   });
   revalidatePath("/admin/content");
   revalidatePath("/");
@@ -157,7 +165,7 @@ export async function updateSpeaker(
 
 export async function deleteSpeaker(id: string) {
   await requireAdmin();
-  await prisma.speaker.delete({ where: { id } });
+  await prisma.speaker.delete({ where: { id: parseAdminInput(contentIdSchema, id) } });
   revalidatePath("/admin/content");
   revalidatePath("/");
   revalidatePath("/summit");

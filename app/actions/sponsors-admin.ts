@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { SponsorTier } from "@prisma/client";
+import { contentIdSchema, parseAdminInput, sponsorSchema } from "@/lib/validations/admin-content";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -24,11 +25,9 @@ export type SponsorPayload = {
 
 export async function createSponsor(data: SponsorPayload) {
   await requireAdmin();
+  const safeData = parseAdminInput(sponsorSchema, data);
   await prisma.sponsor.create({
-    data: {
-      ...data,
-      sortOrder: data.sortOrder ?? 0,
-    },
+    data: safeData,
   });
   revalidatePath("/admin/sponsors");
   revalidatePath("/");
@@ -37,9 +36,10 @@ export async function createSponsor(data: SponsorPayload) {
 
 export async function updateSponsor(id: string, data: SponsorPayload) {
   await requireAdmin();
+  const safeData = parseAdminInput(sponsorSchema, data);
   await prisma.sponsor.update({
-    where: { id },
-    data: { ...data, sortOrder: data.sortOrder ?? 0 },
+    where: { id: parseAdminInput(contentIdSchema, id) },
+    data: safeData,
   });
   revalidatePath("/admin/sponsors");
   revalidatePath("/");
@@ -48,7 +48,7 @@ export async function updateSponsor(id: string, data: SponsorPayload) {
 
 export async function deleteSponsor(id: string) {
   await requireAdmin();
-  await prisma.sponsor.delete({ where: { id } });
+  await prisma.sponsor.delete({ where: { id: parseAdminInput(contentIdSchema, id) } });
   revalidatePath("/admin/sponsors");
   revalidatePath("/");
   revalidatePath("/program");

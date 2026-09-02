@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { contentIdSchema, juryMemberSchema, parseAdminInput } from "@/lib/validations/admin-content";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -29,11 +30,9 @@ export type JuryMemberPayload = {
 
 export async function createJuryMember(data: JuryMemberPayload) {
   await requireAdmin();
+  const safeData = parseAdminInput(juryMemberSchema, data);
   await prisma.juryMember.create({
-    data: {
-      ...data,
-      sortOrder: data.sortOrder ?? 0,
-    },
+    data: safeData,
   });
   revalidatePath("/admin/jury");
   revalidatePath("/");
@@ -43,12 +42,10 @@ export async function createJuryMember(data: JuryMemberPayload) {
 
 export async function updateJuryMember(id: string, data: JuryMemberPayload) {
   await requireAdmin();
+  const safeData = parseAdminInput(juryMemberSchema, data);
   await prisma.juryMember.update({
-    where: { id },
-    data: {
-      ...data,
-      sortOrder: data.sortOrder ?? 0,
-    },
+    where: { id: parseAdminInput(contentIdSchema, id) },
+    data: safeData,
   });
   revalidatePath("/admin/jury");
   revalidatePath("/");
@@ -58,7 +55,7 @@ export async function updateJuryMember(id: string, data: JuryMemberPayload) {
 
 export async function deleteJuryMember(id: string) {
   await requireAdmin();
-  await prisma.juryMember.delete({ where: { id } });
+  await prisma.juryMember.delete({ where: { id: parseAdminInput(contentIdSchema, id) } });
   revalidatePath("/admin/jury");
   revalidatePath("/");
   revalidatePath("/program");
