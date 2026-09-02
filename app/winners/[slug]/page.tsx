@@ -19,7 +19,7 @@ export async function generateMetadata({
   return {
     title: `${nominee.name} | India's 40 Under 40 2026`,
     description: `${nominee.name}, ${nominee.designation} at ${nominee.company}. India's 40 Under 40 winner 2026.`,
-    alternates: { canonical: `/winners/${nominee.slug}` },
+    alternates: { canonical: `/winners/${slug}` },
     openGraph: {
       title: `${nominee.name} | 40 Under 40 2026`,
       description: `${nominee.designation} at ${nominee.company}. India's 40 Under 40 winner.`,
