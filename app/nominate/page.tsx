@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { submitNominationForm } from "@/app/actions/nomination";
 import type { GenderOption, NominationTypeOption } from "@/lib/validations/nomination";
 
 const GENDER_OPTIONS: GenderOption[] = ["Male", "Female", "Prefer not to say", "Other"];
@@ -159,9 +158,13 @@ export default function NominatePage() {
       setLoading(true);
       setSubmitError(null);
       try {
-        const result = await submitNominationForm(buildFormData());
+        const response = await fetch("/api/nominations", {
+          method: "POST",
+          body: buildFormData(),
+        });
+        const result = await response.json() as { success: boolean; error?: string };
         if (result.success) setSubmitted(true);
-        else setSubmitError(result.error);
+        else setSubmitError(result.error ?? "We could not submit the nomination. Please try again.");
       } catch {
         setSubmitError("We could not submit the nomination. Please retry once; if it continues, use a smaller photo or try again in a few minutes.");
       } finally {
