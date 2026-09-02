@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Jury | India's 40 Under 40 2026",
   description: "Meet the independent jury guiding Asia Inc. 500's 40 Under 40 selection process.",
+  alternates: { canonical: "/jury" },
 };
 
 export const revalidate = 300;

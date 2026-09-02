@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Programme | India's 40 Under 40 2026",
   description: "Discover the jury, partners, and programme behind Asia Inc. 500's 40 Under 40 2026.",
+  alternates: { canonical: "/program" },
 };
 
 /** Revalidate cached page every 60 seconds; admin actions revalidate on content change. */

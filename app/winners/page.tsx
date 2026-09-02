@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Winners | India's 40 Under 40 2026",
   description: "Meet the winners of Asia Inc. 500's 40 Under 40 2026 recognition programme.",
+  alternates: { canonical: "/winners" },
 };
 
 /** Revalidate cached page every 60 seconds; admin actions revalidate when winners change. */

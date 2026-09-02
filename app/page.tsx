@@ -13,6 +13,7 @@ import { NoticeBoard } from "@/components/sections/NoticeBoard";
 
 /** Cached at the edge; admin mutations explicitly invalidate this route. */
 export const revalidate = 300;
+export const metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
   const [nominationCount, settings, speakers, notice] = await Promise.all([

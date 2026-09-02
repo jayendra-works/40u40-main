@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Summit Agenda | 40 Under 40 2026",
   description: "View the Leadership Summit & Awards 2026 programme, schedule, and sessions.",
+  alternates: { canonical: "/agenda" },
 };
 
 export const revalidate = 60;
