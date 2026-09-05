@@ -163,7 +163,7 @@ const DEFAULT_FINALISTS = [
     id: "finalist-rajesh-kshetry", name: "Rajesh Kshetry", title: "Cross-Border Legal Institution Builder", organization: "Founder & Managing Partner | Legal Strategist | Arbitration | Corporate Governance | Mentor", category: "Legal", age: 40,
     photo: "/finalists/rajesh-kshetry.jpg",
     bio: "Rajesh Kshetry is the Founder and Managing Partner of Kshetry and Associates, a legal practice he established in 2009 and has grown across India and international jurisdictions. His work spans litigation, corporate and commercial advisory, arbitration, regulatory strategy and cross-border matters, with a leadership approach centred on ethics, mentorship and long-term client trust.",
-    linkedinUrl: "https://www.linkedin.com/in/rajesh-kshetry/", websiteUrl: "https://www.kshetryandassociates.com", isTopContender: false, sortOrder: 40,
+    linkedinUrl: "https://www.linkedin.com/in/rajesh-kshetry/", websiteUrl: "https://www.kshetryandassociates.com", isTopContender: false, sortOrder: 14,
   },
   {
     id: "finalist-nikhil-kamath", name: "Nikhil Kamath", title: "The Outlier Who Rewrote Indian Wealth", organization: "Co-Founder | Investor | Asset Manager | Philanthropist | Ecosystem Builder", category: "Finance", age: 39,
