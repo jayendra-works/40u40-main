@@ -7,8 +7,9 @@ export const revalidate = 300;
 // so a newly published finalist never receives a cached 404 before ISR refreshes.
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const finalist = await getFinalistBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const finalist = await getFinalistBySlug(slug);
   if (!finalist) return {};
   return {
     title: `${finalist.name} | The Final 40`,
@@ -18,8 +19,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function FinalistProfilePage({ params }: { params: { slug: string } }) {
-  const finalist = await getFinalistBySlug(params.slug);
+export default async function FinalistProfilePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const finalist = await getFinalistBySlug(slug);
   if (!finalist) notFound();
-  return <FinalFortyExperience finalists={await getFinalists()} initialSlug={params.slug} />;
+  return <FinalFortyExperience finalists={await getFinalists()} initialSlug={slug} />;
 }
