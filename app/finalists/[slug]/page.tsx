@@ -3,6 +3,9 @@ import { getFinalistBySlug, getFinalists } from "@/lib/finalists";
 import { FinalFortyExperience } from "@/components/sections/FinalFortyExperience";
 
 export const revalidate = 300;
+// Finalist records are CMS-managed. Resolve direct profile URLs at request time
+// so a newly published finalist never receives a cached 404 before ISR refreshes.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const finalist = await getFinalistBySlug(params.slug);
