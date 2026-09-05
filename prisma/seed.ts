@@ -160,6 +160,12 @@ const DEFAULT_TOP_CONTENDERS = [
 
 const DEFAULT_FINALISTS = [
   {
+    id: "finalist-rajesh-kshetry", name: "Rajesh Kshetry", title: "Cross-Border Legal Institution Builder", organization: "Founder & Managing Partner | Legal Strategist | Arbitration | Corporate Governance | Mentor", category: "Legal", age: 40,
+    photo: "/finalists/rajesh-kshetry.jpg",
+    bio: "Rajesh Kshetry is the Founder and Managing Partner of Kshetry and Associates, a legal practice he established in 2009 and has grown across India and international jurisdictions. His work spans litigation, corporate and commercial advisory, arbitration, regulatory strategy and cross-border matters, with a leadership approach centred on ethics, mentorship and long-term client trust.",
+    linkedinUrl: "https://www.linkedin.com/in/rajesh-kshetry/", websiteUrl: "https://www.kshetryandassociates.com", isTopContender: false, sortOrder: 40,
+  },
+  {
     id: "finalist-nikhil-kamath", name: "Nikhil Kamath", title: "The Outlier Who Rewrote Indian Wealth", organization: "Co-Founder | Investor | Asset Manager | Philanthropist | Ecosystem Builder", category: "Finance", age: 39,
     photo: "https://inc42.com/wp-content/uploads/2023/09/cropped-Ather-Nikhil-Kamath-feature.png",
     bio: "Nikhil Kamath dropped out of school at 15 and went on to build Zerodha into India's largest retail stockbroker, opening the stock market to millions who were once priced out. Alongside his brother Nithin, he built a bootstrapped brokerage into one of the country's most valuable financial companies, later founding True Beacon and Gruhas to support wealth management and the next wave of startups.",
